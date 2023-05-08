@@ -1,10 +1,12 @@
 use crate::board::Board;
+use crate::transposition_table::TranspositionTable;
 
 pub mod board;
+mod transposition_table;
 
 const COLUMN_ORDER: [usize; 7] = [3, 2, 4, 1, 5, 0, 6];
 
-fn negamax(board: Board, mut alpha: i32, mut beta: i32) -> i32 {
+fn negamax(board: Board, mut alpha: i32, mut beta: i32, transposition_table: &mut TranspositionTable) -> i32 {
     if board.is_full() {
         return 0;
     }
@@ -13,7 +15,11 @@ fn negamax(board: Board, mut alpha: i32, mut beta: i32) -> i32 {
         return (Board::SQUARES as i32 + 1 - board.filled_squares() as i32) / 2;
     }
 
-    let max = (Board::SQUARES as i32 - 1 - board.filled_squares() as i32) / 2; // Upper bound of our score as we cannot win immediately
+    let max = if let Some(score) = transposition_table.get(board) {
+        score //The upper bound is in the transposition table
+    } else {
+        (Board::SQUARES as i32 - 1 - board.filled_squares() as i32) / 2 // Upper bound of our score as we cannot win immediately
+    };
     if beta > max {
         beta = max;
         if alpha >= beta {
@@ -23,7 +29,7 @@ fn negamax(board: Board, mut alpha: i32, mut beta: i32) -> i32 {
 
     for column in COLUMN_ORDER {
         if let Ok(new_board) = board.make_move(column) {
-            let score = -negamax(new_board, -beta, -alpha);
+            let score = -negamax(new_board, -beta, -alpha, transposition_table);
             if score >= beta {
                 return score;
             }
@@ -32,11 +38,14 @@ fn negamax(board: Board, mut alpha: i32, mut beta: i32) -> i32 {
             }
         }
     }
+    
+    transposition_table.set(board, alpha);
     alpha
 }
 
 fn solve(board: Board) -> i32 {
-    negamax(board, -(Board::SQUARES as i32), Board::SQUARES as i32)
+    let mut transposition_table = TranspositionTable::new();
+    negamax(board, -(Board::SQUARES as i32), Board::SQUARES as i32, &mut transposition_table)
 }
 
 #[cfg(test)]
