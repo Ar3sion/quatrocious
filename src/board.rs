@@ -247,7 +247,7 @@ impl Board {
         self.winning_positions(player).count_ones()
     }
     
-    pub unsafe fn make_move_unchecked(self, move_mask: u64) -> Board {
+    pub fn make_move_unchecked(self, move_mask: u64) -> Board {
         Self {
             current_player: self.current_player ^ self.mask, //flip all values
             mask: self.mask | move_mask, //extend mask

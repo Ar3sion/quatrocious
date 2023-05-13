@@ -41,16 +41,16 @@ fn negamax(board: Board, mut alpha: i32, mut beta: i32, transposition_table: &mu
     }
     
     let mut move_sorter = MoveSorter::new();
-    for column in COLUMN_ORDER {
+    for &column in COLUMN_ORDER.iter().rev() {
         let move_mask = Board::column_mask(column) & possible;
         if move_mask != 0 {
-            let new_board = unsafe { board.make_move_unchecked(move_mask) };
-            move_sorter.add(move_mask, new_board.heuristic_score(board.player_to_play()))
+            let new_board = board.make_move_unchecked(move_mask);
+            move_sorter.add(move_mask, new_board.heuristic_score(board.player_to_play()));
         }
     }
     
     while let Some(move_mask) = move_sorter.get_next() {
-        let new_board = unsafe { board.make_move_unchecked(move_mask) };
+        let new_board = board.make_move_unchecked(move_mask);
         let score = -negamax(new_board, -beta, -alpha, transposition_table, node_counter);
         if score >= beta {
             return score;
@@ -131,7 +131,7 @@ mod tests {
         let average_duration = total_duration.div_f32(counter as f32);
         println!("Average duration: {:?}, nodes: {}", average_duration, node_counter as f64 / counter as f64);
     }
-
+    
     #[test]
     fn test_end_easy() {
         test(include_str!("./test_sets/Test_L3_R1"))

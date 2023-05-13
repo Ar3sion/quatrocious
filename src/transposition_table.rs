@@ -1,3 +1,4 @@
+use std::collections::hash_map::DefaultHasher;
 use crate::Board;
 
 #[derive(Copy, Clone)]
@@ -11,7 +12,7 @@ impl Entry {
     }
     
     pub fn get_key(self) -> u64 {
-        self.0 << 8
+        self.0 >> 8
     }
     
     pub fn get_value(self) -> i32 {
